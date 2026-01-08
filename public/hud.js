@@ -6,8 +6,13 @@ const vidaText = document.getElementById("vidaText");
 const manaText = document.getElementById("manaText");
 const dadoBox = document.getElementById("dadoResultado");
 
-function render(s) {
-  const vidaPerc = (s.vida.atual / s.vida.max) * 100;
+function render(s = {}) {
+  if (!s.vida || !s.mana) return;
+
+  const vidaPerc = Math.max(
+    0,
+    Math.min(100, (s.vida.atual / s.vida.max) * 100)
+  );
 
   vidaBar.style.width = `${vidaPerc}%`;
   vidaText.textContent = `${s.vida.atual}/${s.vida.max}`;
