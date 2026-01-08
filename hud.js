@@ -1,35 +1,51 @@
-// hud.js
-import { state } from "./shared-socket.js";
+const socket = io();
 
 const vidaBar = document.getElementById("vidaBar");
 const vidaText = document.getElementById("vidaText");
 const manaText = document.getElementById("manaText");
-const dadoBox = document.getElementById("dadoResultado");
+const dadoBox = document.getElementById("diceResults");
+const hud = document.querySelector(".hud");
 
-function render(s = {}) {
-  if (!s.vida || !s.mana) return;
+let diceTimeout = null;
 
-  const vidaPerc = Math.max(
+socket.on("state:update", state => {
+  // VIDA
+  const perc = Math.max(
     0,
-    Math.min(100, (s.vida.atual / s.vida.max) * 100)
+    Math.min(100, (state.vida.atual / state.vida.max) * 100)
   );
 
-  vidaBar.style.width = `${vidaPerc}%`;
-  vidaText.textContent = `${s.vida.atual}/${s.vida.max}`;
-  manaText.textContent = `${s.mana.atual}/${s.mana.max}`;
+  vidaBar.style.width = `${perc}%`;
+  vidaText.textContent = `${state.vida.atual}/${state.vida.max}`;
+  manaText.textContent = `${state.mana.atual}/${state.mana.max}`;
 
-  if (s.dado) {
-    dadoBox.innerHTML = s.dado.resultados
-      .map(r => `<div class="hex">${r}</div>`)
-      .join("");
+  // ESCONDER BARRA
+  hud.classList.toggle("hp-hidden", !state.showVidaBar);
+
+  // ANIMAÇÃO DANO / CURA
+  hud.classList.remove("damage", "heal");
+  if (perc < 100) hud.classList.add("damage");
+  if (perc === 100) hud.classList.add("heal");
+
+  // DADOS
+  if (state.dado) {
+    dadoBox.innerHTML = "";
+    state.dado.resultados.forEach(v => {
+      const el = document.createElement("div");
+      el.className = "dice-hex";
+
+      if (state.dado.faces === 20 && v === 20) el.classList.add("crit");
+      if (state.dado.faces === 20 && v === 1) el.classList.add("fail");
+
+      el.textContent = v;
+      dadoBox.appendChild(el);
+    });
 
     dadoBox.classList.add("show");
-    setTimeout(() => dadoBox.classList.remove("show"), 15000);
+
+    clearTimeout(diceTimeout);
+    diceTimeout = setTimeout(() => {
+      dadoBox.classList.remove("show");
+    }, 15000);
   }
-}
-
-render(state);
-
-window.addEventListener("state:changed", (e) => {
-  render(e.detail);
 });
