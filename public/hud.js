@@ -49,3 +49,10 @@ socket.on("state:update", state => {
     }, 15000);
   }
 });
+setInterval(() => {
+  if (window.socket && socket.connected) {
+    socket.emit("hud:ping");
+  }
+}, 3000);
+
+
