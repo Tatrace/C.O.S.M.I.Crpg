@@ -13,8 +13,15 @@ const io = new Server(server, {
   cors: { origin: "*" }
 });
 
+// 🔹 Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, "public")));
 
+// 🔹 ROTA PRINCIPAL → LOGIN
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+// 🔹 Estado global
 let state = {
   name: "Leafone",
   level: 6,
@@ -24,6 +31,7 @@ let state = {
   showVidaBar: true
 };
 
+// 🔹 Socket
 io.on("connection", socket => {
   socket.emit("state:update", state);
 
