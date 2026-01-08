@@ -1,54 +1,43 @@
-import { socket, joinHUD } from "./shared-socket.js";
+import { socket, joinHud } from "./shared-socket.js";
 
-const params = new URLSearchParams(window.location.search);
-const HUD_ID = params.get("id") || "leafone";
+const hudId = joinHud();
 
-joinHUD(HUD_ID);
+// elementos
+const vidaText = document.getElementById("vida-text");
+const manaText = document.getElementById("mana-text");
+const vidaBar = document.getElementById("vida-bar");
+const manaBar = document.getElementById("mana-bar");
+const dadoBox = document.getElementById("dado-resultado");
 
-socket.on("hud-update", (data) => {
-  if (data.nome) {
-    document.getElementById("nome").innerText = data.nome;
-    document.getElementById("nivel").innerText = data.nivel;
-    document.getElementById("vida").innerText =
-      `${data.vidaAtual}/${data.vidaMax}`;
-    document.getElementById("mana").innerText =
-      `${data.manaAtual}/${data.manaMax}`;
+socket.on("hud-update", data => {
+  const { vidaAtual, vidaMax, manaAtual, manaMax, nivel } = data;
 
-    animarVida(data.vidaAtual, data.vidaMax);
-  }
+  vidaText.textContent = `${vidaAtual}/${vidaMax}`;
+  manaText.textContent = `${manaAtual}/${manaMax}`;
 
-  if (data.dado) {
-    mostrarResultadoDado(data.dado);
-  }
+  vidaBar.style.width = `${(vidaAtual / vidaMax) * 100}%`;
+  manaBar.style.width = `${(manaAtual / manaMax) * 100}%`;
+
+  // animação de dano
+  vidaBar.classList.add("hit");
+  setTimeout(() => vidaBar.classList.remove("hit"), 300);
 });
 
-function animarVida(atual, max) {
-  const barra = document.getElementById("vida-barra");
-  const pct = (atual / max) * 100;
-  barra.style.width = pct + "%";
+socket.on("dice-result", roll => {
+  dadoBox.innerHTML = "";
 
-  barra.classList.remove("hit");
-  void barra.offsetWidth;
-  barra.classList.add("hit");
-}
-
-function mostrarResultadoDado(dado) {
-  const el = document.getElementById("dado-resultado");
-  el.innerHTML = "";
-
-  dado.resultados.forEach((r) => {
-    const d = document.createElement("div");
-    d.className = "dado";
-
-    if (r === 1) d.classList.add("falha");
-    if (r === Number(dado.tipo.replace("d", ""))) d.classList.add("critico");
-
-    d.innerText = r;
-    el.appendChild(d);
+  roll.resultados.forEach(r => {
+    const el = document.createElement("div");
+    el.className = "dice";
+    el.textContent = r;
+    dadoBox.appendChild(el);
   });
 
-  setTimeout(() => {
-    el.innerHTML = "";
-  }, 15000);
-}
+  if (roll.critico) dadoBox.classList.add("crit");
+  if (roll.falha) dadoBox.classList.add("fail");
 
+  setTimeout(() => {
+    dadoBox.innerHTML = "";
+    dadoBox.classList.remove("crit", "fail");
+  }, 15000);
+});
