@@ -3,15 +3,16 @@ import { state, updateState } from "./shared-socket.js";
 
 window.applyStatus = () => {
   updateState({
-    vida: {
-      atual: Number(document.getElementById("vidaAtual").value),
-      max: Number(document.getElementById("vidaMax").value)
-    },
-    mana: {
-      atual: Number(document.getElementById("manaAtual").value),
-      max: Number(document.getElementById("manaMax").value)
-    }
-  });
+  ...state,
+  vida: {
+    atual: Number(document.getElementById("vidaAtual").value) || 0,
+    max: Number(document.getElementById("vidaMax").value) || 1
+  },
+  mana: {
+    atual: Number(document.getElementById("manaAtual").value) || 0,
+    max: Number(document.getElementById("manaMax").value) || 1
+  }
+});
 };
 
 window.rolarDado = () => {
@@ -34,3 +35,4 @@ window.rolarDado = () => {
 window.abrirHUD = () => {
   window.open("/hud.html", "HUD", "width=500,height=300");
 };
+
