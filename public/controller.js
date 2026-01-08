@@ -1,52 +1,42 @@
-// controller.js
-import { state, updateState } from "./shared-socket.js";
+import { sendToHUD } from "./shared-socket.js";
 
-window.applyStatus = () => {
-  updateState({
-  ...state,
-  vida: {
-    atual: Number(document.getElementById("vidaAtual").value) || 0,
-    max: Number(document.getElementById("vidaMax").value) || 1
-  },
-  mana: {
-    atual: Number(document.getElementById("manaAtual").value) || 0,
-    max: Number(document.getElementById("manaMax").value) || 1
-  }
+const HUD_ID = "leafone"; // 🔥 TROQUE PARA CADA PERSONAGEM
+
+function getValue(id) {
+  return Number(document.getElementById(id).value);
+}
+
+document.getElementById("aplicar").addEventListener("click", () => {
+  const data = {
+    nome: document.getElementById("nome").value,
+    nivel: getValue("nivel"),
+    vidaAtual: getValue("vidaAtual"),
+    vidaMax: getValue("vidaMax"),
+    manaAtual: getValue("manaAtual"),
+    manaMax: getValue("manaMax"),
+  };
+
+  sendToHUD(HUD_ID, data);
 });
-};
 
-window.rolarDado = () => {
-  const faces = Number(document.getElementById("dadoTipo").value.replace("d",""));
-  const qtd = Number(document.getElementById("dadoQtd").value);
+document.getElementById("rolar").addEventListener("click", () => {
+  const tipo = document.getElementById("dado").value;
+  const qtd = Number(document.getElementById("quantidade").value);
 
-  const resultados = Array.from({ length: qtd }, () =>
-    Math.floor(Math.random() * faces) + 1
-  );
+  const resultados = [];
+  const faces = Number(tipo.replace("d", ""));
 
-  updateState({
-    dado: {
-      faces,
-      resultados,
-      timestamp: Date.now()
-    }
-  });
-};
-
-window.abrirHUD = () => {
-  window.open("/hud.html", "HUD", "width=500,height=300");
-};
-socket.emit("updateHUD", {
-  hudId,
-  estado: {
-    nome,
-    nivel,
-    vidaAtual,
-    vidaMax,
-    manaAtual,
-    manaMax,
-    dadoResultado,   // número
-    tipoDado,        // "normal" | "critico" | "falha"
-    dano: true       // só quando perder vida
+  for (let i = 0; i < qtd; i++) {
+    resultados.push(1 + Math.floor(Math.random() * faces));
   }
+
+  sendToHUD(HUD_ID, {
+    dado: {
+      tipo,
+      resultados,
+      critico: resultados.includes(faces),
+      falha: resultados.includes(1),
+    },
+  });
 });
 
