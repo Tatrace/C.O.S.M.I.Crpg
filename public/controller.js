@@ -1,40 +1,37 @@
-import { joinHud, updateHud, sendRoll } from "./shared-socket.js";
-
-const hudId = joinHud();
-
-// aplicar vida/mana
-document.getElementById("aplicar").addEventListener("click", () => {
-  const vidaAtual = Number(document.getElementById("vidaAtual").value);
-  const vidaMax = Number(document.getElementById("vidaMax").value);
-  const manaAtual = Number(document.getElementById("manaAtual").value);
-  const manaMax = Number(document.getElementById("manaMax").value);
+function aplicarStatus() {
+  const nome = document.getElementById("nome").value;
   const nivel = Number(document.getElementById("nivel").value);
 
-  updateHud(hudId, {
+  const vidaAtual = Number(document.getElementById("vidaAtual").value);
+  const vidaMax = Number(document.getElementById("vidaMax").value);
+
+  const manaAtual = Number(document.getElementById("manaAtual").value);
+  const manaMax = Number(document.getElementById("manaMax").value);
+
+  enviarHUD({
+    nome,
+    nivel,
     vidaAtual,
     vidaMax,
     manaAtual,
-    manaMax,
-    nivel
+    manaMax
   });
-});
+}
 
-// rolar dado
-document.getElementById("rolar").addEventListener("click", () => {
+function rolarDado() {
   const tipo = document.getElementById("tipoDado").value;
   const qtd = Number(document.getElementById("qtdDado").value);
 
-  const lados = Number(tipo.replace("d", ""));
   const resultados = [];
-
   for (let i = 0; i < qtd; i++) {
-    resultados.push(1 + Math.floor(Math.random() * lados));
+    resultados.push(Math.floor(Math.random() * Number(tipo.slice(1))) + 1);
   }
 
-  sendRoll(hudId, {
+  enviarDado({
     tipo,
     resultados,
-    critico: resultados.includes(lados),
+    critico: resultados.includes(20),
     falha: resultados.includes(1)
   });
-});
+}
+
