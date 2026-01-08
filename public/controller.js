@@ -35,4 +35,18 @@ window.rolarDado = () => {
 window.abrirHUD = () => {
   window.open("/hud.html", "HUD", "width=500,height=300");
 };
+socket.emit("updateHUD", {
+  hudId,
+  estado: {
+    nome,
+    nivel,
+    vidaAtual,
+    vidaMax,
+    manaAtual,
+    manaMax,
+    dadoResultado,   // número
+    tipoDado,        // "normal" | "critico" | "falha"
+    dano: true       // só quando perder vida
+  }
+});
 
