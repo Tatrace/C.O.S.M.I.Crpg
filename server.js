@@ -1,15 +1,27 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+
+app.use(express.static("public"));
+
+io.on("connection", (socket) => {
+  socket.on("join-hud", (hudId) => {
+    socket.join(hudId);
+  });
+
+  socket.on("hud-update", ({ hudId, data }) => {
+    io.to(hudId).emit("hud-update", data);
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log("Servidor rodando na porta", PORT);
+});
 
 // ==========================
 // SERVIR ARQUIVOS ESTÁTICOS
@@ -82,5 +94,6 @@ io.on("connection", (socket) => {
   });
 
 });
+
 
 
