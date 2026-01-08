@@ -70,4 +70,17 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log("🔥 Servidor rodando na porta", PORT);
 });
+io.on("connection", (socket) => {
+
+  socket.on("joinRoom", (hudId) => {
+    socket.join(hudId);
+    console.log("Socket entrou na sala:", hudId);
+  });
+
+  socket.on("updateHUD", ({ hudId, estado }) => {
+    io.to(hudId).emit("hud:update", estado);
+  });
+
+});
+
 
