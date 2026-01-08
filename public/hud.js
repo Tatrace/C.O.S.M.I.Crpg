@@ -1,78 +1,54 @@
-const socket = io();
+import { socket, joinHUD } from "./shared-socket.js";
 
-/* ==========================
-   HUD ID (URL ?hud=xxx)
-========================== */
-function getHudId() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("hud");
-}
+const params = new URLSearchParams(window.location.search);
+const HUD_ID = params.get("id") || "leafone";
 
-const hudId = getHudId();
+joinHUD(HUD_ID);
 
-if (!hudId) {
-  console.error("HUD sem ID!");
-}
+socket.on("hud-update", (data) => {
+  if (data.nome) {
+    document.getElementById("nome").innerText = data.nome;
+    document.getElementById("nivel").innerText = data.nivel;
+    document.getElementById("vida").innerText =
+      `${data.vidaAtual}/${data.vidaMax}`;
+    document.getElementById("mana").innerText =
+      `${data.manaAtual}/${data.manaMax}`;
 
-/* ==========================
-   ENTRA NA SALA
-========================== */
-socket.emit("joinRoom", hudId);
-
-/* ==========================
-   ATUALIZA HUD
-========================== */
-socket.on("hud:update", (estado) => {
-  document.getElementById("hud").classList.remove("hidden");
-
-  document.getElementById("nome").textContent = estado.nome;
-  document.getElementById("nivel").textContent = estado.nivel;
-
-  document.getElementById("vidaTexto").textContent =
-    `${estado.vidaAtual}/${estado.vidaMax}`;
-
-  document.getElementById("manaTexto").textContent =
-    `${estado.manaAtual}/${estado.manaMax}`;
-
-  const pctVida = Math.max(
-    0,
-    Math.min(100, (estado.vidaAtual / estado.vidaMax) * 100)
-  );
-
-  const vidaBarra = document.getElementById("vidaBarra");
-  vidaBarra.style.width = pctVida + "%";
-
-  /* Tremida quando perde vida */
-  vidaBarra.classList.remove("damage");
-  if (estado.dano) {
-    vidaBarra.classList.add("damage");
+    animarVida(data.vidaAtual, data.vidaMax);
   }
 
-  /* Resultado do dado */
-  if (estado.dadoResultado !== undefined) {
-    mostrarDado(estado.dadoResultado, estado.tipoDado);
+  if (data.dado) {
+    mostrarResultadoDado(data.dado);
   }
 });
 
-/* ==========================
-   DADO COM AUTO-SUMIR
-========================== */
-let dadoTimeout = null;
+function animarVida(atual, max) {
+  const barra = document.getElementById("vida-barra");
+  const pct = (atual / max) * 100;
+  barra.style.width = pct + "%";
 
-function mostrarDado(valor, tipo) {
-  const el = document.getElementById("dadoResultado");
+  barra.classList.remove("hit");
+  void barra.offsetWidth;
+  barra.classList.add("hit");
+}
 
-  el.textContent = valor;
-  el.className = "dado";
+function mostrarResultadoDado(dado) {
+  const el = document.getElementById("dado-resultado");
+  el.innerHTML = "";
 
-  if (tipo === "critico") el.classList.add("critico");
-  if (tipo === "falha") el.classList.add("falha");
+  dado.resultados.forEach((r) => {
+    const d = document.createElement("div");
+    d.className = "dado";
 
-  clearTimeout(dadoTimeout);
+    if (r === 1) d.classList.add("falha");
+    if (r === Number(dado.tipo.replace("d", ""))) d.classList.add("critico");
 
-  dadoTimeout = setTimeout(() => {
-    el.textContent = "";
-    el.className = "dado";
+    d.innerText = r;
+    el.appendChild(d);
+  });
+
+  setTimeout(() => {
+    el.innerHTML = "";
   }, 15000);
 }
 
