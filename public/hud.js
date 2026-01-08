@@ -1,35 +1,78 @@
-// hud.js
-import { state } from "./shared-socket.js";
+const socket = io();
 
-const vidaBar = document.getElementById("vidaBar");
-const vidaText = document.getElementById("vidaText");
-const manaText = document.getElementById("manaText");
-const dadoBox = document.getElementById("dadoResultado");
-
-function render(s = {}) {
-  if (!s.vida || !s.mana) return;
-
-  const vidaPerc = Math.max(
-    0,
-    Math.min(100, (s.vida.atual / s.vida.max) * 100)
-  );
-
-  vidaBar.style.width = `${vidaPerc}%`;
-  vidaText.textContent = `${s.vida.atual}/${s.vida.max}`;
-  manaText.textContent = `${s.mana.atual}/${s.mana.max}`;
-
-  if (s.dado) {
-    dadoBox.innerHTML = s.dado.resultados
-      .map(r => `<div class="hex">${r}</div>`)
-      .join("");
-
-    dadoBox.classList.add("show");
-    setTimeout(() => dadoBox.classList.remove("show"), 15000);
-  }
+/* ==========================
+   HUD ID (URL ?hud=xxx)
+========================== */
+function getHudId() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("hud");
 }
 
-render(state);
+const hudId = getHudId();
 
-window.addEventListener("state:changed", (e) => {
-  render(e.detail);
+if (!hudId) {
+  console.error("HUD sem ID!");
+}
+
+/* ==========================
+   ENTRA NA SALA
+========================== */
+socket.emit("joinRoom", hudId);
+
+/* ==========================
+   ATUALIZA HUD
+========================== */
+socket.on("hud:update", (estado) => {
+  document.getElementById("hud").classList.remove("hidden");
+
+  document.getElementById("nome").textContent = estado.nome;
+  document.getElementById("nivel").textContent = estado.nivel;
+
+  document.getElementById("vidaTexto").textContent =
+    `${estado.vidaAtual}/${estado.vidaMax}`;
+
+  document.getElementById("manaTexto").textContent =
+    `${estado.manaAtual}/${estado.manaMax}`;
+
+  const pctVida = Math.max(
+    0,
+    Math.min(100, (estado.vidaAtual / estado.vidaMax) * 100)
+  );
+
+  const vidaBarra = document.getElementById("vidaBarra");
+  vidaBarra.style.width = pctVida + "%";
+
+  /* Tremida quando perde vida */
+  vidaBarra.classList.remove("damage");
+  if (estado.dano) {
+    vidaBarra.classList.add("damage");
+  }
+
+  /* Resultado do dado */
+  if (estado.dadoResultado !== undefined) {
+    mostrarDado(estado.dadoResultado, estado.tipoDado);
+  }
 });
+
+/* ==========================
+   DADO COM AUTO-SUMIR
+========================== */
+let dadoTimeout = null;
+
+function mostrarDado(valor, tipo) {
+  const el = document.getElementById("dadoResultado");
+
+  el.textContent = valor;
+  el.className = "dado";
+
+  if (tipo === "critico") el.classList.add("critico");
+  if (tipo === "falha") el.classList.add("falha");
+
+  clearTimeout(dadoTimeout);
+
+  dadoTimeout = setTimeout(() => {
+    el.textContent = "";
+    el.className = "dado";
+  }, 15000);
+}
+
