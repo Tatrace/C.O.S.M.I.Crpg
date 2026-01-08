@@ -1,32 +1,12 @@
-// shared-socket.js
-const socket = io();
+import { io } from "https://cdn.socket.io/4.7.5/socket.io.esm.min.js";
 
-const DEFAULT_STATE = {
-  nome: "Leafone",
-  nivel: 6,
-  vida: { atual: 36, max: 100 },
-  mana: { atual: 15, max: 15 },
-  dado: null
-};
+export const socket = io();
 
-let state = JSON.parse(localStorage.getItem("HUD_STATE")) || DEFAULT_STATE;
-
-function saveState() {
-  localStorage.setItem("HUD_STATE", JSON.stringify(state));
+export function joinHUD(hudId) {
+  socket.emit("join-hud", hudId);
 }
 
-function updateState(patch) {
-  state = { ...state, ...patch };
-  saveState();
-  socket.emit("state:update", state);
+export function sendToHUD(hudId, data) {
+  socket.emit("hud-update", { hudId, data });
 }
 
-socket.on("state:sync", (newState) => {
-  state = newState;
-  saveState();
-  window.dispatchEvent(new CustomEvent("state:changed", { detail: state }));
-});
-
-socket.emit("state:sync");
-
-export { state, updateState };
