@@ -25,4 +25,30 @@ export function updateHud(hudId, data) {
 export function sendRoll(hudId, roll) {
   socket.emit("roll-result", { hudId, roll });
 }
+// shared-socket.js
+const socket = io();
+
+// ===== ENVIAR ATUALIZAÇÃO DE STATUS =====
+function enviarHUD(data) {
+  socket.emit("hud:update", data);
+}
+
+// ===== RECEBER ATUALIZAÇÃO =====
+socket.on("hud:update", (data) => {
+  if (window.updateHUD) {
+    window.updateHUD(data);
+  }
+});
+
+// ===== DADOS =====
+function enviarDado(dado) {
+  socket.emit("dice:roll", dado);
+}
+
+socket.on("dice:roll", (dado) => {
+  if (window.mostrarDado) {
+    window.mostrarDado(dado);
+  }
+});
+
 
