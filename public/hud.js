@@ -1,43 +1,32 @@
-import { socket, joinHud } from "./shared-socket.js";
+let dadoTimeout = null;
 
-const hudId = joinHud();
+window.updateHUD = function (data) {
+  document.getElementById("hudNome").innerText = data.nome;
+  document.getElementById("vidaTxt").innerText =
+    `${data.vidaAtual}/${data.vidaMax}`;
+  document.getElementById("manaTxt").innerText =
+    `${data.manaAtual}/${data.manaMax}`;
 
-// elementos
-const vidaText = document.getElementById("vida-text");
-const manaText = document.getElementById("mana-text");
-const vidaBar = document.getElementById("vida-bar");
-const manaBar = document.getElementById("mana-bar");
-const dadoBox = document.getElementById("dado-resultado");
+  const vidaPerc = (data.vidaAtual / data.vidaMax) * 100;
+  document.getElementById("vidaBar").style.width = vidaPerc + "%";
 
-socket.on("hud-update", data => {
-  const { vidaAtual, vidaMax, manaAtual, manaMax, nivel } = data;
-
-  vidaText.textContent = `${vidaAtual}/${vidaMax}`;
-  manaText.textContent = `${manaAtual}/${manaMax}`;
-
-  vidaBar.style.width = `${(vidaAtual / vidaMax) * 100}%`;
-  manaBar.style.width = `${(manaAtual / manaMax) * 100}%`;
-
-  // animação de dano
-  vidaBar.classList.add("hit");
-  setTimeout(() => vidaBar.classList.remove("hit"), 300);
-});
-
-socket.on("dice-result", roll => {
-  dadoBox.innerHTML = "";
-
-  roll.resultados.forEach(r => {
-    const el = document.createElement("div");
-    el.className = "dice";
-    el.textContent = r;
-    dadoBox.appendChild(el);
-  });
-
-  if (roll.critico) dadoBox.classList.add("crit");
-  if (roll.falha) dadoBox.classList.add("fail");
-
+  document.getElementById("hud").classList.add("shake");
   setTimeout(() => {
-    dadoBox.innerHTML = "";
-    dadoBox.classList.remove("crit", "fail");
+    document.getElementById("hud").classList.remove("shake");
+  }, 300);
+};
+
+window.mostrarDado = function (dice) {
+  const el = document.getElementById("diceResult");
+  el.innerHTML = dice.resultados.join(" ");
+
+  el.className = "dice show";
+  if (dice.critico) el.classList.add("critico");
+  if (dice.falha) el.classList.add("falha");
+
+  clearTimeout(dadoTimeout);
+  dadoTimeout = setTimeout(() => {
+    el.className = "dice";
   }, 15000);
-});
+};
+
