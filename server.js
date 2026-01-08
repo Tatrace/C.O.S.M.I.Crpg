@@ -4,23 +4,37 @@ import { Server } from "socket.io";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// dirname para ES Modules
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, "public")));
+//  IMPORTANTE: permitir CORS automático do Render
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Servir arquivos estáticos
+app.use(express.static(path.join(_dirname, "public")));
+
+// healthcheck iradissimo e radicopolis só pra garantir
+app.get("/health", (, res) => {
+  res.send("OK");
+});
 
 const PORT = process.env.PORT || 3000;
 
-// Estado em memória (por enquanto)
+// Estado em memória
 const characters = {};
 
 // SOCKET.IO
 io.on("connection", socket => {
-  console.log("🔗 Conectado:", socket.id);
+  console.log(" Conectado:", socket.id);
 
   socket.on("joinCharacter", charId => {
     socket.join(charId);
@@ -38,13 +52,13 @@ io.on("connection", socket => {
   socket.on("rollDice", ({ charId, result }) => {
     socket.to(charId).emit("diceResult", result);
   });
+
+  socket.on("disconnect", () => {
+    console.log(" Desconectado:", socket.id);
+  });
 });
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
-});
 
-server.listen(PORT, () => {
-  console.log("🔥 Servidor rodando na porta", PORT);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(" Servidor rodando na porta", PORT);
 });
-
