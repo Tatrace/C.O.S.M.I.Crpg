@@ -1,42 +1,7 @@
-const socket = io();
-
-socket.on("state:update", state => {
-  render(state);
-});
-
-function render(state) {
-  document.getElementById("nome").textContent = state.name;
-  document.getElementById("vida").textContent = `${state.vidaAtual}/${state.vidaMax}`;
-  document.getElementById("mana").textContent = `${state.manaAtual}/${state.manaMax}`;
-  document.getElementById("nivel").textContent = state.level;
-
-  if (state.diceResult !== null) {
-    const dice = document.getElementById("dice");
-    dice.textContent = state.diceResult;
-    dice.classList.add("dice-pop");
-
-    setTimeout(() => {
-      dice.textContent = "";
-      dice.classList.remove("dice-pop");
-    }, 15000);
-  }
-
-  animarVida(state);
-}
-
-function animarVida(state) {
-  const bar = document.getElementById("vidaBar");
-  const percent = (state.vidaAtual / state.vidaMax) * 100;
-  bar.style.width = percent + "%";
-
-  bar.classList.remove("shake");
-  if (percent < 30) {
-    bar.classList.add("shake");
-  }
-}
 listenHudUpdates((data) => {
+
   if (data.vidaAtual !== undefined) {
-    document.getElementById("vida").innerText =
+    document.getElementById("vidaTexto").innerText =
       `${data.vidaAtual}/${data.vidaMax}`;
 
     const pct = (data.vidaAtual / data.vidaMax) * 100;
@@ -44,7 +9,7 @@ listenHudUpdates((data) => {
   }
 
   if (data.manaAtual !== undefined) {
-    document.getElementById("mana").innerText =
+    document.getElementById("manaTexto").innerText =
       `${data.manaAtual}/${data.manaMax}`;
   }
 
@@ -53,14 +18,13 @@ listenHudUpdates((data) => {
   }
 
   if (data.dado) {
-    const dado = document.getElementById("dado");
-    dado.innerText = data.dado;
-    dado.classList.add("anim-dado");
+    const el = document.getElementById("dado");
+    el.innerText = data.dado;
+    el.classList.add("dado-anim");
 
     setTimeout(() => {
-      dado.classList.remove("anim-dado");
-      dado.innerText = "";
+      el.innerText = "";
+      el.classList.remove("dado-anim");
     }, 15000);
   }
 });
-
