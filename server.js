@@ -6,13 +6,15 @@ const io = require("socket.io")(http);
 app.use(express.static("public"));
 
 io.on("connection", socket => {
-  socket.on("join", hudId => {
-    socket.join(hudId);
+
+  socket.on("join", id => {
+    socket.join(id);
   });
 
   socket.on("updateHud", data => {
     io.to(data.id).emit("hudUpdate", data);
   });
+
 });
 
 const PORT = process.env.PORT || 3000;
