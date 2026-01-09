@@ -1,6 +1,7 @@
 {
-  "name": "cris-hud-server",
-  "type": "module",
+  "name": "cosmic-hud",
+  "version": "1.0.0",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
