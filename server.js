@@ -1,27 +1,26 @@
 const express = require("express");
-const http = require("http");
 const path = require("path");
-const { Server } = require("socket.io");
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const PORT = process.env.PORT || 3000;
 
+// Pasta pública
 app.use(express.static(path.join(__dirname, "public")));
 
+// ROTA PRINCIPAL → LOGIN
 app.get("/", (req, res) => {
-  res.redirect("/login.html");
+  res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-io.on("connection", socket => {
-  console.log("Conectado:", socket.id);
-
-  socket.on("state:update", state => {
-    socket.broadcast.emit("state:update", state);
-  });
+// (opcional) rotas diretas úteis
+app.get("/controller", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "controller.html"));
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+app.get("/hud", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "hud.html"));
+});
+
+app.listen(PORT, () => {
   console.log("Servidor rodando na porta", PORT);
 });
