@@ -1,19 +1,24 @@
-function aplicarStatus() {
-  sendHudUpdate({
-    vidaAtual: Number(document.getElementById("vidaAtual").value),
-    vidaMax: Number(document.getElementById("vidaMax").value),
-    manaAtual: Number(document.getElementById("manaAtual").value),
-    manaMax: Number(document.getElementById("manaMax").value),
-    nivel: Number(document.getElementById("nivel").value)
-  });
+const socket = io();
+
+function aplicar() {
+  const payload = {
+    id: "leafone", // 🔥 HUD alvo
+    nome: document.getElementById("nome").value,
+    nivel: document.getElementById("nivel").value,
+    vida: document.getElementById("vida").value,
+    vidaMax: document.getElementById("vidaMax").value,
+    mana: document.getElementById("mana").value,
+    manaMax: document.getElementById("manaMax").value
+  };
+
+  socket.emit("updateHud", payload);
 }
 
 function rolarDado() {
-  const faces = 20;
-  const resultado = Math.floor(Math.random() * faces) + 1;
+  const resultado = Math.floor(Math.random() * 20) + 1;
 
-  sendHudUpdate({
-    dado: resultado,
-    ts: Date.now()
+  socket.emit("updateHud", {
+    id: "leafone",
+    dado: resultado
   });
 }
