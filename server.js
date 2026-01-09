@@ -3,17 +3,19 @@ const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 
+// arquivos estáticos
 app.use(express.static("public"));
 
+// ROTA RAIZ -> LOGIN
 app.get("/", (req, res) => {
-  res.redirect("/login.html");
+  res.sendFile(__dirname + "/public/login.html");
 });
 
 io.on("connection", socket => {
 
   socket.on("join", id => {
     socket.join(id);
-    console.log("Entrou no HUD:", id);
+    console.log("HUD conectado:", id);
   });
 
   socket.on("updateHud", data => {
