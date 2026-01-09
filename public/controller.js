@@ -1,17 +1,20 @@
 const socket = io();
 
-// ENTRA NA SALA
-socket.emit("join", "leafone");
+// HUD alvo
+const HUD_ID = "leafone";
+
+// entra na sala
+socket.emit("join", HUD_ID);
 
 function aplicarHUD() {
   socket.emit("updateHud", {
-    id: "leafone",
-    name: document.getElementById("nome").value,
-    level: document.getElementById("nivel").value,
-    vidaAtual: document.getElementById("vidaAtual").value,
-    vidaMax: document.getElementById("vidaMax").value,
-    manaAtual: document.getElementById("manaAtual").value,
-    manaMax: document.getElementById("manaMax").value,
+    id: HUD_ID,
+    name: nome.value,
+    level: nivel.value,
+    vidaAtual: vidaAtual.value,
+    vidaMax: vidaMax.value,
+    manaAtual: manaAtual.value,
+    manaMax: manaMax.value,
     showVidaBar: true,
     dice: { rolls: [] }
   });
@@ -21,7 +24,7 @@ function rolarDado() {
   const r = Math.floor(Math.random() * 20) + 1;
 
   socket.emit("updateHud", {
-    id: "leafone",
+    id: HUD_ID,
     dice: { rolls: [r] }
   });
 }
