@@ -1,28 +1,36 @@
 const socket = io();
-const ID = new URLSearchParams(location.search).get("id") || "default";
 
-function atualizarHUD(state) {
-  if (!state) return;
+socket.on("state:update", state => {
+  render(state);
+});
 
-  document.getElementById("vida").innerText =
-    `${state.vidaAtual}/${state.vidaMax}`;
+function render(state) {
+  document.getElementById("nome").textContent = state.name;
+  document.getElementById("vida").textContent = `${state.vidaAtual}/${state.vidaMax}`;
+  document.getElementById("mana").textContent = `${state.manaAtual}/${state.manaMax}`;
+  document.getElementById("nivel").textContent = state.level;
 
-  document.getElementById("mana").innerText =
-    `${state.manaAtual}/${state.manaMax}`;
+  if (state.diceResult !== null) {
+    const dice = document.getElementById("dice");
+    dice.textContent = state.diceResult;
+    dice.classList.add("dice-pop");
 
-  document.getElementById("nivel").innerText = state.nivel;
-
-  if (state.dado) {
-    const dado = document.getElementById("dado");
-    dado.innerText = state.dado;
-    dado.style.opacity = 1;
-    setTimeout(() => dado.style.opacity = 0, 15000);
+    setTimeout(() => {
+      dice.textContent = "";
+      dice.classList.remove("dice-pop");
+    }, 15000);
   }
+
+  animarVida(state);
 }
 
-/* 🔥 PULL LOOP – ISSO FAZ FUNCIONAR NO OBS */
-setInterval(() => {
-  socket.emit("hud:get", ID);
-}, 500);
+function animarVida(state) {
+  const bar = document.getElementById("vidaBar");
+  const percent = (state.vidaAtual / state.vidaMax) * 100;
+  bar.style.width = percent + "%";
 
-socket.on("hud:state", atualizarHUD);
+  bar.classList.remove("shake");
+  if (percent < 30) {
+    bar.classList.add("shake");
+  }
+}
